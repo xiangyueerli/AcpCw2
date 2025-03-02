@@ -1,18 +1,16 @@
 package uk.ac.ed.acp.cw2.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
 
 @RestController()
 public class ServiceController {
 
-    /**
-     * a simple alive check
-     *
-     * @return true (always)
-     */
-    @GetMapping(value = {"/isAlive"})
-    public boolean isAlive() {
-        return true;
+    private final RuntimeEnvironment environment;
+
+    public ServiceController(RuntimeEnvironment environment) {
+        this.environment = environment;
     }
 
 
@@ -27,7 +25,16 @@ public class ServiceController {
                 "<h1>Welcome from ACP CW2</h1>" +
                 "<h2>Environment variables </br><div> " + currentEnv.toString() + "</div></h2>" +
                 "</body></html>";
+    }
 
+    @GetMapping("/uuid")
+    public String uuid() {
+        return "s12345678";
+    }
+
+    @GetMapping("/cache")
+    public String cache() {
+        return "cache";
     }
 
 }
