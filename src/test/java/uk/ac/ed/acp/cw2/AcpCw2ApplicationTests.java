@@ -1,10 +1,10 @@
-package uk.ac.ed.acpstorageservice;
+package uk.ac.ed.acp.cw2;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class AcpStorageServiceApplicationTests {
+class AcpCw2ApplicationTests {
 
     @Test
     void contextLoads() {
