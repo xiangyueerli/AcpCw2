@@ -170,27 +170,23 @@ Should you modify anything make sure to include the necessary options for the Ja
 
 ## Reference Documentation
 For further reference, please consider the following sections:
-* [Official Maven Documentation](${mavenDocs})
-* [Spring Boot Maven Plugin Reference Guide](${springBootMavenPlugin}/reference/html/)
-* [Create an OCI Image](${springBootMavenPlugin}/reference/html/#build-image)
-* [Spring Web](${springBootDocs}/#web)
-* [Kafka Quick-Start]($(kafka)/quickstart) 
-* <a>[Redis](${redis})</a>
-* [RabbitMQ](${rabbitmq}) 
-
-### Guides
-The following guides illustrate how to use some features concretely:
-* [Building a RESTful Web Service](${springGuides}/rest-service/)
-* [Serving Web Content with Spring MVC](${springGuides}/serving-web-content/)
-* [Building REST Services with Spring](${springGuides}/tutorials/rest/)
+* [Kafka Quick-Start][kafka/quickstart] 
+* [Redis][redis]
+* [RabbitMQ][rabbitmq] 
+* [Official Maven Documentation][mavenDocs]
+* [Spring Boot Maven Plugin Reference Guide][springBootMavenPlugin]
+* [Create an OCI Image][springBootMavenPlugin/#build-image]
+* [Spring Web][springBootDocs]
 
 ---
 
 <!-- Variables for Easy Updates -->
 [mavenDocs]: https://maven.apache.org/guides/index.html
-[springBootMavenPlugin]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin
-[springBootDocs]: https://docs.spring.io/spring-boot/docs/3.2.2/reference/htmlsingle/index.html
+[springBootMavenPlugin]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin/reference/html/
+[springBootMavenPlugin]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin/reference/html/#build_image
+[springBootDocs]: https://docs.spring.io/spring-boot/docs/3.2.2/reference/htmlsingle/index.html/#web
 [springGuides]: https://spring.io/guides
 [kafka]: https://kafka.apache.org/
+[kafka/quickstart]: https://kafka.apache.org/quickstart
 [redis]: https://redis.io/
 [rabbitmq]: https://www.rabbitmq.com/
