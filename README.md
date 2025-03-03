@@ -183,7 +183,7 @@ For further reference, please consider the following sections:
 <!-- Variables for Easy Updates -->
 [mavenDocs]: https://maven.apache.org/guides/index.html
 [springBootMavenPlugin]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin/reference/html/
-[springBootMavenPluginBuildImage]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin/reference/html/#build_image
+[springBootMavenPluginBuildImage]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin/reference/htmlsingle/#build-image
 [springBootDocs]: https://docs.spring.io/spring-boot/docs/3.2.2/reference/htmlsingle/index.html#web
 [springGuides]: https://spring.io/guides
 [kafka]: https://kafka.apache.org/
