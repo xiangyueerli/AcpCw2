@@ -94,25 +94,81 @@ Please feel free to use your own approach...
 
 This will install redis as well as the management console (port 8001) 
 
-`docker run -d --name redis -p 6379:6379 -p 8001:8001 redis/redis-stack:latest`
+```shell
+docker run -d --name redis -p 6379:6379 -p 8001:8001 redis/redis-stack:latest`
+```
 
-### Testing up to now... (redis)
+### Testing redis
 
+After the above installation you should have a docker dashboard entry which shows two lines (expand if necessary). One is 6379 for redis, the other 8001 for the management console. 
+
+Clicking on the link (or http://localhost:8001/redis-stack/browser in the browser) will launch the Redis app where you can see your keys, etc. 
+
+As soon as you triggered the cache endpoint in the ACP CW2 service using e.g. PUT http://127.0.0.1:8080/cache/myKey/This%20is%20a%20string it should show up like:
+
+![redis mgmt.png](assets/redis%20mgmt.png)
 ### Installing rabbitMQ
 
 This will install rabbitMQ as well as the management console (port 15672)
 
-`docker run -it --rm -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:4.0-management`
+```shell
+docker run -it --rm -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:4.0-management
+````
+
+This will install the rabbitMQ engine and the UI for it. 
+
+### Testing rabbitMQ
+
+Testing can be easily done by clicking on the link with 15672 -> then a browser window with the management UI should show (**logon guest / guest**).
+
+
+### Installing kafka
+
+Installing Kafka can be done in very different ways - the one described here is simple and straightforward, yet doesn't use all available options.
+It is based on the docker compose file [compose.yml](compose.yml).
+
+For it to function first a private network needs to be created in docker (see the explanation above).
+```shell
+docker network create acp_network
+```
+
+After the network is created you can (using the provided compose.yml file) create a new installation (_which assumes the file compose.yml is in the same directory_) using
+```shell
+docker compose -p acp up -d 
+```
+With this command you load the docker compose file, create the kafka environment - using the predefined network acp_network - and create listeners for 9092 and 9093 (docker only).
+
+### Create a topic in kafka
+
+After the kafka environment is running you have to create a topic. The easiest way is to download the current kafka release (for details see: https://kafka.apache.org/quickstart) and then use the commands:
+
+```shell
+cd unpack-directory 
+bin/kafka-topics.sh --bootstrap-server localhost:9092 --topic stockvalues  --create --partitions 2 --replication-factor 1
+```
+
+This will create a topic **stockvalues** with 2 partitions locally. 
+
+## Deploying the ACP CW2 container
+
+As can be seen above, the container can be run as standalone process or as a container in docker. Please use the corresponding execution target (top right in intelliJ). 
+
+For docker you need to run <code>maven package</code> first, as otherwise there is no jar to execute.
+
+
+### Testing
+
+After you deployed the application you can test everything by running all commands in the API-test-file: [acp_cw2.http](acp_cw2.http)
 
 
 
+### Special consideration for M4 machines
+
+Should you modify anything make sure to include the necessary options for the Java runtime to exclude some instructions as otherwise SIGILL will be caused in docker 
 
 
-**Installing kafka**
 
-
-
-### Reference Documentation
+## Reference Documentation
 For further reference, please consider the following sections:
 * [Official Maven Documentation](${mavenDocs})
 * [Spring Boot Maven Plugin Reference Guide](${springBootMavenPlugin}/reference/html/)
