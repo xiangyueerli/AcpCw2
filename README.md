@@ -175,7 +175,7 @@ For further reference, please consider the following sections:
 * [RabbitMQ][rabbitmq] 
 * [Official Maven Documentation][mavenDocs]
 * [Spring Boot Maven Plugin Reference Guide][springBootMavenPlugin]
-* [Create an OCI Image][springBootMavenPlugin/#build-image]
+* [Create an OCI Image][springBootMavenPluginBuildImage]
 * [Spring Web][springBootDocs]
 
 ---
@@ -183,8 +183,8 @@ For further reference, please consider the following sections:
 <!-- Variables for Easy Updates -->
 [mavenDocs]: https://maven.apache.org/guides/index.html
 [springBootMavenPlugin]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin/reference/html/
-[springBootMavenPlugin]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin/reference/html/#build_image
-[springBootDocs]: https://docs.spring.io/spring-boot/docs/3.2.2/reference/htmlsingle/index.html/#web
+[springBootMavenPluginBuildImage]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin/reference/html/#build_image
+[springBootDocs]: https://docs.spring.io/spring-boot/docs/3.2.2/reference/htmlsingle/index.html#web
 [springGuides]: https://spring.io/guides
 [kafka]: https://kafka.apache.org/
 [kafka/quickstart]: https://kafka.apache.org/quickstart
