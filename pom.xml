@@ -68,6 +68,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+
+                <configuration>
+                    <systemPropertyVariables>
+                        <REDIS_HOST>localhost</REDIS_HOST>
+                        <REDIS_PORT>6379</REDIS_PORT>
+                        <RABBITMQ_HOST>localhost</RABBITMQ_HOST>
+                        <RABBITMQ_PORT>5672</RABBITMQ_PORT>
+                        <KAFKA_BOOTSTRAP_SERVERS>localhost:9092</KAFKA_BOOTSTRAP_SERVERS>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -24,40 +24,22 @@ public class RuntimeEnvironment {
     private int rabbitmqPort;
     private String kafkaBootstrapServers;
 
+
     /**
-     * Checks the environment for the required variables and initializes a RuntimeEnvironment object
-     * with those values if they are present. Throws a RuntimeException if any required environment variable
-     * is missing.
+     * Retrieves and initializes a RuntimeEnvironment object populated with configuration settings
+     * for Kafka, Redis, and RabbitMQ, using corresponding environment variables.
+     * If environment variables are not set, default values are assigned.
      *
-     * @return A RuntimeEnvironment object containing the configuration values extracted from the environment.
+     * @return a RuntimeEnvironment instance with the configured settings for Kafka, Redis, and RabbitMQ.
      */
     public static RuntimeEnvironment getEnvironment() {
         RuntimeEnvironment settings = new RuntimeEnvironment();
 
-        if (System.getenv(KAFKA_BOOTSTRAP_SERVERS_ENV_VAR) == null) {
-            throw new RuntimeException("KAFKA_BOOTSTRAP_SERVERS environment variable not set");
-        }
-        settings.setKafkaBootstrapServers(System.getenv(KAFKA_BOOTSTRAP_SERVERS_ENV_VAR));
-
-        if (System.getenv(REDIS_HOST_ENV_VAR) == null) {
-            throw new RuntimeException("REDIS_HOST environment variable not set");
-        }
-        settings.setRedisHost(System.getenv(REDIS_HOST_ENV_VAR));
-
-        if (System.getenv(REDIS_PORT_ENV_VAR) == null) {
-            throw new RuntimeException("REDIS_PORT environment variable not set");
-        }
-        settings.setRedisPort(Integer.parseInt(System.getenv(REDIS_PORT_ENV_VAR)));
-
-        if (System.getenv(RABBITMQ_HOST_ENV_VAR) == null) {
-            throw new RuntimeException("RABBITMQ_HOST environment variable not set");
-        }
-        settings.setRabbitmqHost(System.getenv(RABBITMQ_HOST_ENV_VAR));
-
-        if (System.getenv(RABBITMQ_PORT_ENV_VAR) == null) {
-            throw new RuntimeException("RABBITMQ_PORT environment variable not set");
-        }
-        settings.setRabbitmqPort(Integer.parseInt(System.getenv(RABBITMQ_PORT_ENV_VAR)));
+        settings.setKafkaBootstrapServers(System.getenv(KAFKA_BOOTSTRAP_SERVERS_ENV_VAR) == null ? "localhost:9092" : System.getenv(KAFKA_BOOTSTRAP_SERVERS_ENV_VAR));
+        settings.setRedisHost(System.getenv(REDIS_HOST_ENV_VAR) == null ? "localhost" : System.getenv(REDIS_HOST_ENV_VAR));
+        settings.setRedisPort(System.getenv(REDIS_PORT_ENV_VAR) == null ? 6379 : Integer.parseInt(System.getenv(REDIS_PORT_ENV_VAR)));
+        settings.setRabbitmqHost(System.getenv(RABBITMQ_HOST_ENV_VAR) == null ? "localhost" : System.getenv(RABBITMQ_HOST_ENV_VAR));
+        settings.setRabbitmqPort(System.getenv(RABBITMQ_PORT_ENV_VAR) == null ? 5672 : Integer.parseInt(System.getenv(RABBITMQ_PORT_ENV_VAR)));
 
         return settings;
     }
