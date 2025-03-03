@@ -174,6 +174,9 @@ For further reference, please consider the following sections:
 * [Spring Boot Maven Plugin Reference Guide](${springBootMavenPlugin}/reference/html/)
 * [Create an OCI Image](${springBootMavenPlugin}/reference/html/#build-image)
 * [Spring Web](${springBootDocs}/#web)
+* [Kafka Quick-Start]($(kafka)/quickstart) 
+* [Redis](${redis})
+* [RabbitMQ](${rabbitmq}) 
 
 ### Guides
 The following guides illustrate how to use some features concretely:
@@ -188,3 +191,6 @@ The following guides illustrate how to use some features concretely:
 [springBootMavenPlugin]: https://docs.spring.io/spring-boot/docs/3.2.2/maven-plugin
 [springBootDocs]: https://docs.spring.io/spring-boot/docs/3.2.2/reference/htmlsingle/index.html
 [springGuides]: https://spring.io/guides
+[kafka]: https://kafka.apache.org/
+[redis]: https://redis.io/
+[rabbitmq]: https://www.rabbitmq.com/
