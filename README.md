@@ -175,7 +175,7 @@ For further reference, please consider the following sections:
 * [Create an OCI Image](${springBootMavenPlugin}/reference/html/#build-image)
 * [Spring Web](${springBootDocs}/#web)
 * [Kafka Quick-Start]($(kafka)/quickstart) 
-* [Redis](${redis})
+* <a>[Redis](${redis})</a>
 * [RabbitMQ](${rabbitmq}) 
 
 ### Guides
