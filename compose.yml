@@ -3,7 +3,6 @@ services:
     image: apache/kafka-native
     networks:
       - acp_network
-      - default
     ports:
       - "9092:9092"
     environment:
