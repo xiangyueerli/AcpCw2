@@ -167,6 +167,12 @@ After you deployed the application you can test everything by running all comman
 Should you modify anything make sure to include the necessary options for the Java runtime to exclude some instructions as otherwise SIGILL will be caused in docker 
 
 
+## Swagger UI
+
+To show the power of OpenAPI the project includes the OpenAPI 3.0 libraries to create a swagger UI dynamically (so, no need for you to do anything, unless you want to customize content).
+
+For access, simply hit the endpoint swagger-ui/index.html like in:
+http://localhost:8080/swagger-ui/index.html
 
 ## Reference Documentation
 For further reference, please consider the following sections:
