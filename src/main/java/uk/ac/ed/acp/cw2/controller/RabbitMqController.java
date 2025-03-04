@@ -19,6 +19,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * RabbitMqController is a REST controller that provides endpoints for sending and receiving stock symbols
+ * through RabbitMQ. This class interacts with a RabbitMQ environment which is configured dynamically during runtime.
+ */
 @RestController()
 public class RabbitMqController {
 

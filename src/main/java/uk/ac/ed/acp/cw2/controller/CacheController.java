@@ -10,6 +10,11 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
 
+/**
+ * Controller class responsible for handling REST endpoints for managing
+ * cache storage using Redis. Provides functionality to retrieve and store
+ * key-value pairs in the cache.
+ */
 @RestController()
 public class CacheController {
 

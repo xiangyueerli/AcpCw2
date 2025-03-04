@@ -19,6 +19,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * KafkaController is a REST API controller used to interact with Apache Kafka for producing
+ * and consuming stock symbol events. This class provides endpoints for sending stock symbols
+ * to a Kafka topic and retrieving stock symbols from a Kafka topic.
+ * <p>
+ * It is designed to handle dynamic Kafka configurations based on the runtime environment
+ * and supports security configurations such as SASL and JAAS.
+ */
 @RestController()
 public class KafkaController {
 

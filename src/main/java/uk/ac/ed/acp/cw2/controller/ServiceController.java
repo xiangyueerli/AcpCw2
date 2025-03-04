@@ -5,6 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
 
+/**
+ * Controller class that handles various HTTP endpoints for the application.
+ * Provides functionality for serving the index page, retrieving a static UUID,
+ * and managing key-value pairs through POST requests.
+ */
 @RestController()
 public class ServiceController {
 
@@ -32,5 +37,15 @@ public class ServiceController {
     @GetMapping("/uuid")
     public String uuid() {
         return "s12345678";
+    }
+
+    @PostMapping("/valuemanager/{key}/{value}")
+    public void postPath(@PathVariable(required = false) String key, @PathVariable String value) {
+        System.out.printf("Received POST request (path based) with key %s and value %s\n", key, value);
+    }
+
+    @PostMapping("/valuemanager")
+    public void postQuery(@RequestParam(required = false) String key, @RequestParam String value) {
+        System.out.printf("Received POST request (query-param based) with key %s and value %s\n", key, value);
     }
 }

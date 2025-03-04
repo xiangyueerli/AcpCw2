@@ -2,6 +2,7 @@ spring:
   application:
     name: acpCw2Service
 
+
 info:
   app:
     name: ACP CW2
@@ -22,3 +23,6 @@ management:
       show-details: always
       probes:
         enabled: true
+server:
+  port: 8080
+

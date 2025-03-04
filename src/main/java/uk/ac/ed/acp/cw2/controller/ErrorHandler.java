@@ -1,5 +1,7 @@
 package uk.ac.ed.acp.cw2.controller;
 
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
@@ -12,8 +14,13 @@ import java.time.format.DateTimeFormatter;
 import static jakarta.servlet.RequestDispatcher.FORWARD_REQUEST_URI;
 
 /**
- * handle global errors with a project specific better message
+ * Controller to handle error requests in the application.
+ * Implements the {@link ErrorController} interface.
+ * The class provides functionality to retrieve error details such as status code,
+ * exception message, and the original requested URL, and format them into an
+ * HTML error response.
  */
+@Hidden
 @Controller
 public class ErrorHandler implements ErrorController {
 
