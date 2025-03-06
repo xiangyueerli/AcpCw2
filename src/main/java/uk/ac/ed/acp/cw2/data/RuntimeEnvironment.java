@@ -45,6 +45,9 @@ public class RuntimeEnvironment {
     public static RuntimeEnvironment getEnvironment() {
         RuntimeEnvironment settings = new RuntimeEnvironment();
 
+        if (System.getProperty(KAFKA_BOOTSTRAP_SERVERS_ENV_VAR) == null) {
+            throw new RuntimeException("KAFKA not set");
+        }
         settings.setKafkaBootstrapServers(System.getenv(KAFKA_BOOTSTRAP_SERVERS_ENV_VAR) == null ? "localhost:9092" : System.getenv(KAFKA_BOOTSTRAP_SERVERS_ENV_VAR));
         settings.setRedisHost(System.getenv(REDIS_HOST_ENV_VAR) == null ? "localhost" : System.getenv(REDIS_HOST_ENV_VAR));
         settings.setRedisPort(System.getenv(REDIS_PORT_ENV_VAR) == null ? 6379 : Integer.parseInt(System.getenv(REDIS_PORT_ENV_VAR)));

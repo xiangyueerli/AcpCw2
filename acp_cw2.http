@@ -1,5 +1,5 @@
 ### PUT to store something in the cache
-PUT http://127.0.0.1:8080/cache/myKey/This%20is%20a%20string
+PUT http://127.0.0.1:8080/cache/myKey/This%20is%20a%20string%20for%20the%20tutorial
 ###
 
 ### GET request to retrieve the data
@@ -11,5 +11,8 @@ POST http://127.0.0.1:8080/kafka/sendStockSymbols/stockvalues/1000
 ###
 
 ### receive stock symbols within 4000 msec from topic stockvalues
-GET http://127.0.0.1:8080/kafka/receiveStockSymbols/stockvalues/4000
+GET http://127.0.0.1:8080/kafka/receiveStockSymbols/stockvalues/6000
+###
+
+
 ###
