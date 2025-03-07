@@ -13,17 +13,18 @@ import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
  * key-value pairs in the cache.
  */
 @RestController()
-@RequestMapping("/api/v1/cache")
-public class CacheController {
+@RequestMapping("/api/v1/mongodb")
+public class MongoDbController {
 
-    private static final Logger logger = LoggerFactory.getLogger(CacheController.class);
+    private static final Logger logger = LoggerFactory.getLogger(MongoDbController.class);
     private final RuntimeEnvironment environment;
 
-    public CacheController(RuntimeEnvironment environment) {
+    public MongoDbController(RuntimeEnvironment environment) {
         this.environment = environment;
     }
 
-    @GetMapping("/{cacheKey}")
+    /*
+    @GetMapping("/cache/{cacheKey}")
     public String retrieveFromCache(@PathVariable String cacheKey) {
         logger.info(String.format("Retrieving %s from cache", cacheKey));
         try (JedisPool pool = new JedisPool(environment.getRedisHost(), environment.getRedisPort()); Jedis jedis = pool.getResource()) {
@@ -40,7 +41,7 @@ public class CacheController {
         }
     }
 
-    @PutMapping("/{cacheKey}/{cacheValue}")
+    @PutMapping("/cache/{cacheKey}/{cacheValue}")
     public void storeInCache(@PathVariable String cacheKey, @PathVariable String cacheValue) {
         logger.info(String.format("Storing %s in cache with key %s", cacheValue, cacheKey));
         try (JedisPool pool = new JedisPool(environment.getRedisHost(), environment.getRedisPort()); Jedis jedis = pool.getResource()) {
@@ -50,4 +51,6 @@ public class CacheController {
             throw e;
         }
     }
+
+     */
 }

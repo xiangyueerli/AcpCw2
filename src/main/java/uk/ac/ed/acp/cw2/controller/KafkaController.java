@@ -28,6 +28,7 @@ import java.util.concurrent.TimeoutException;
  * and supports security configurations such as SASL and JAAS.
  */
 @RestController()
+@RequestMapping("/api/v1/kafka")
 public class KafkaController {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaController.class);
@@ -73,7 +74,7 @@ public class KafkaController {
         return kafkaProps;
     }
 
-    @PostMapping("/kafka/sendStockSymbols/{symbolTopic}/{symbolCount}")
+    @PostMapping("/sendStockSymbols/{symbolTopic}/{symbolCount}")
     public void sendStockSymbols(@PathVariable String symbolTopic, @PathVariable int symbolCount) {
         logger.info(String.format("Writing %d symbols in topic %s", symbolCount, symbolTopic));
         Properties kafkaProps = getKafkaProperties(environment);
@@ -102,7 +103,7 @@ public class KafkaController {
         }
     }
 
-    @GetMapping("/kafka/receiveStockSymbols/{symbolTopic}/{consumeTimeMsec}")
+    @GetMapping("/receiveStockSymbols/{symbolTopic}/{consumeTimeMsec}")
     public List<AbstractMap.SimpleEntry<String, String>> receiveStockSymbols(@PathVariable String symbolTopic, @PathVariable int consumeTimeMsec) {
         logger.info(String.format("Reading stock-symbols from topic %s", symbolTopic));
         Properties kafkaProps = getKafkaProperties(environment);

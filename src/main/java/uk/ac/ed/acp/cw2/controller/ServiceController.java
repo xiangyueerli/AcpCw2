@@ -11,6 +11,7 @@ import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
  * and managing key-value pairs through POST requests.
  */
 @RestController()
+@RequestMapping("/api/v1")
 public class ServiceController {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
@@ -37,15 +38,5 @@ public class ServiceController {
     @GetMapping("/uuid")
     public String uuid() {
         return "s12345678";
-    }
-
-    @PostMapping("/valuemanager/{key}/{value}")
-    public void postPath(@PathVariable(required = false) String key, @PathVariable String value) {
-        System.out.printf("Received POST request (path based) with key %s and value %s\n", key, value);
-    }
-
-    @PostMapping("/valuemanager")
-    public void postQuery(@RequestParam(required = false) String key, @RequestParam String value) {
-        System.out.printf("Received POST request (query-param based) with key %s and value %s\n", key, value);
     }
 }
