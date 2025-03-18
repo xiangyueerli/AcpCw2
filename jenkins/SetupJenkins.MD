@@ -25,3 +25,4 @@ Then the pipeline can be created and run:  [jenkins-pipeline](jenkins-pipeline)
 Polling for the SCM can be defined using: H/2 * * * *
 Even easier would be an automated build every x minutes
 
+
