@@ -1,18 +1,33 @@
+### (3) PUT rabbitMq/{queueName}/{messageCount}
+PUT http://127.0.0.1:8080/rabbitMq/cyy/1000
+###
+
+### (3) GET rabbitMq/{queueName}/{timeoutInMsec}
+GET http://127.0.0.1:8080/rabbitMq/cyy/100
+###
+
+
+
 ### PUT to store something in the cache
-PUT http://127.0.0.1:8080/cache/myKey/This%20is%20a%20string%20for%20the%20tutorial
+PUT http://127.0.0.1:8080/api/v1/cache/myKey/This%20is%20a%20string%20for%20the%20tutorial
 ###
 
 ### GET request to retrieve the data
-GET http://127.0.0.1:8080/cache/myKey
+GET http://127.0.0.1:8080/api/v1/cache/112
 ###
 
 ### create 1000 stock symbols in topic stockvalues (has to be created before)
-POST http://127.0.0.1:8080/kafka/sendStockSymbols/stockvalues/1000
+POST http://127.0.0.1:8080/api/v1/kafka/sendStockSymbols/stockvalues/1000
 ###
 
 ### receive stock symbols within 4000 msec from topic stockvalues
-GET http://127.0.0.1:8080/kafka/receiveStockSymbols/stockvalues/6000
+GET http://127.0.0.1:8080/api/v1/kafka/receiveStockSymbols/stockvalues/6000
 ###
 
+### send 100 stock symbols to queue stk
+POST http://127.0.0.1:8080/api/v1/rabbitmq/sendStockSymbols/stk/100
+###
 
+### 在指定时间内（毫秒）从给定 RabbitMQ 队列中接收（消费）股票符号相关消息，并将它们以列表形式返回。
+GET http://127.0.0.1:8080/api/v1/rabbitmq/receiveStockSymbols/stk/3000
 ###
