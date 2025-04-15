@@ -11,7 +11,16 @@ PUT http://127.0.0.1:8080/kafka/test_topic2/100
 ###
 
 ### (3) GET kafka/{readTopic}/{timeoutInMsec}
-GET http://127.0.0.1:8080/kafka/test_topic2/5000
+GET http://127.0.0.1:8080/kafka/bad_q/5000
+###
+
+
+### for test send msg for (17) POST processMessages
+PUT http://127.0.0.1:8080/kafka/send/test_topic3/100
+###
+
+### (17) POST processMessages 不可用 应在postman测试
+POST http://127.0.0.1:8080/kafka/test_topic3/10
 ###
 
 

@@ -123,6 +123,67 @@ public class KafkaController2 {
         }
     }
 
+    // 发送第三大题的request
+    @PutMapping("send/{writeTopic}/{messageCount}")
+    public ResponseEntity<String> sendStudentId2(@PathVariable String writeTopic, @PathVariable int messageCount) {
+        logger.info(String.format("Writing %d messages in topic %s", messageCount, writeTopic));
+        Properties kafkaProps = getKafkaProperties(environment);
+
+        try (var producer = new KafkaProducer<String, String>(kafkaProps)) {
+            ObjectMapper mapper = new ObjectMapper(); // 更可靠的 JSON 构造方式
+            for (int i = 0; i < messageCount; i++) {
+
+                // 1. 构建要发送的消息内容（Map → JSON）]
+                Map<String, Object> messageMap = new HashMap<>();
+                if (i % 2 == 0) {
+                    messageMap.put("uid", "s2653520");  // TODO: 可以从配置读取
+                    messageMap.put("key", "234");
+                    messageMap.put("comment", "hahaha");
+                    messageMap.put("value", 1.3);
+                }
+                else {
+                    messageMap.put("uid", "s2653520");  // TODO: 可以从配置读取
+                    messageMap.put("key", "23455");
+                    messageMap.put("comment", "heiheihei");
+                    messageMap.put("value", 9.99);
+                }
+
+
+                String messageJson = mapper.writeValueAsString(messageMap);
+
+                // 2. 创建 ProducerRecord
+                //    - key 可以是 null 或自定义字符串
+                String key = "k" + i;
+                ProducerRecord<String, String> record =
+                        new ProducerRecord<>(writeTopic, key, messageJson);
+
+                // 3. 使用回调，及时了解发送是否成功
+                producer.send(record, (recordMetadata, ex) -> {
+                    if (ex != null)
+                        logger.error("Error producing to Kafka", ex);
+                    else {
+                        logger.info("Produced event to topic={}, partition={}, offset={}, key={}, value={}",
+                                recordMetadata.topic(),
+                                recordMetadata.partition(),
+                                recordMetadata.offset(),
+                                key,
+                                messageJson);
+                    }
+                }).get(1000, TimeUnit.MILLISECONDS);
+            }
+            // 发送完毕
+            logger.info("{} record(s) sent to Kafka topic '{}'", messageCount, writeTopic);
+            // 返回 200 OK
+            return ResponseEntity.ok("Successfully produced " + messageCount + " messages to topic " + writeTopic);
+
+        } catch (ExecutionException | TimeoutException | InterruptedException | JsonProcessingException e) {
+            // 捕获各种异常并返回 500
+            logger.error("Error producing to Kafka topic '{}': {}", writeTopic, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to send messages: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/{readTopic}/{timeoutInMsec}")
     public ResponseEntity<List<String>> receiveStudentId(@PathVariable String readTopic, @PathVariable int timeoutInMsec) {
         logger.info("Reading messages from topic '{}' with a poll timeout of {} ms",
