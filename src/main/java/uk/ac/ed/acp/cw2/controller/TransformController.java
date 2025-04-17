@@ -138,7 +138,7 @@ public class TransformController {
                         totalMessagesProcessed++;
                     }
                     // TODO
-                    else if (cachedMsg.getVersion() >= version) {
+                    else {
                         // redis 中 version == 新消息 => 不更新 redis
                         // 原样写入
                         rabbitMqService.writeJsonMessage(writeQueue, msgString);   //

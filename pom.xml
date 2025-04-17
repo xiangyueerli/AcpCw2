@@ -118,6 +118,7 @@
                         <RABBITMQ_HOST>localhost</RABBITMQ_HOST>
                         <RABBITMQ_PORT>5672</RABBITMQ_PORT>
                         <KAFKA_BOOTSTRAP_SERVERS>localhost:9092</KAFKA_BOOTSTRAP_SERVERS>
+                        <ACP_STORAGE_SERVICE>https://acp-storage.azurewebsites.net/</ACP_STORAGE_SERVICE>
                     </environmentVariables>
                 </configuration>
             </plugin>

@@ -26,6 +26,8 @@ public class RuntimeEnvironment {
     public static final String KAFKA_SASL_MECHANISM_ENV_VAR = "KAFKA_SASL_MECHANISM";
     public static final String KAFKA_SASL_JAAS_CONFIG_ENV_VAR = "KAFKA_SASL_JAAS_CONFIG";
 
+    public static final String ACP_STORAGE_SERVICE = "ACP_STORAGE_SERVICE";
+
     private String redisHost;
     private int redisPort;
     private String rabbitMqHost;
@@ -36,6 +38,8 @@ public class RuntimeEnvironment {
     private String kafkaSecurityProtocol;
     private String kafkaSaslMechanism;
     private String kafkaSaslJaasConfig;
+
+    private String acpStorageService;
 
     /**
      * Configures and retrieves the runtime environment settings by reading from
@@ -71,6 +75,8 @@ public class RuntimeEnvironment {
             settings.setKafkaSaslMechanism(System.getenv(KAFKA_SASL_MECHANISM_ENV_VAR));
             settings.setKafkaSaslJaasConfig(System.getenv(KAFKA_SASL_JAAS_CONFIG_ENV_VAR));
         }
+
+        settings.setAcpStorageService(System.getenv(ACP_STORAGE_SERVICE) == null ? "https://acp-storage.azurewebsites.net/" : System.getenv(ACP_STORAGE_SERVICE));
 
         return settings;
     }

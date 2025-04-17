@@ -1,7 +1,11 @@
 package uk.ac.ed.acp.cw2.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -11,12 +15,18 @@ import java.util.Map;
 @Service
 public class AcpStorageService {
 
-
+    private final RuntimeEnvironment environment;
+    private final String acpStorageServiceUrl;
     private final ObjectMapper mapper = new ObjectMapper();
+    private static final Logger logger = LoggerFactory.getLogger(AcpStorageService.class);
 
-    private final String acpStorageServiceUrl = "https://acp-storage.azurewebsites.net/";
+    public AcpStorageService(RuntimeEnvironment environment) {
+        this.environment = environment;
+        acpStorageServiceUrl = environment.getAcpStorageService();
+    }
 
     public String storeJsonToAcp(Map<String, Object> json) {
+        logger.info("AcpStorageServiceUrl: {}", acpStorageServiceUrl);
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
