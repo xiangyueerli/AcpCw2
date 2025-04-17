@@ -31,7 +31,7 @@ PUT http://127.0.0.1:8080/api/v1/cache/myKey/This%20is%20a%20string%20for%20the%
 ###
 
 ### GET request to retrieve the data
-GET http://127.0.0.1:8080/api/v1/cache/112
+GET http://127.0.0.1:8080/api/v1/cache/myKey
 ###
 
 ### create 1000 stock symbols in topic stockvalues (has to be created before)

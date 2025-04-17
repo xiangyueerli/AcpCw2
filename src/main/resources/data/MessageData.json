@@ -1,0 +1,43 @@
+[
+  {
+    "key": "ABC",
+    "version": 1,
+    "value": 100
+  },
+  {
+    "key": "ABC",
+    "version": 1,
+    "value": 200
+  },
+  {
+    "key": "ABC",
+    "version": 3,
+    "value": 400
+  },
+  {
+    "key": "ABC",
+    "version": 2,
+    "value": 200
+  },
+  {
+    "key": "ABC"
+  },
+  {
+    "key": "ABC",
+    "version": 2,
+    "value": 200
+  },
+  {
+    "key": "ABCD",
+    "version": 2,
+    "value": 200
+  },
+  {
+    "key": "ABCD",
+    "version": 3,
+    "value": 400
+  },
+  {
+    "key": "ABCD"
+  }
+]

@@ -1,10 +1,7 @@
 package uk.ac.ed.acp.cw2.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;

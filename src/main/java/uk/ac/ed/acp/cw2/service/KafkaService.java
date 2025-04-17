@@ -15,7 +15,7 @@ import java.util.*;
 public class KafkaService {
 
 
-    private RuntimeEnvironment environment;
+    private final RuntimeEnvironment environment;
 
     public KafkaService(RuntimeEnvironment environment) {
         this.environment = environment;
@@ -56,6 +56,7 @@ public class KafkaService {
         return kafkaProps;
     }
 
+    // TODO 是否需要调整offset？
     public List<Map<String, Object>> readKafkaMessages(String topic, int count) {
         List<Map<String, Object>> result = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
@@ -64,6 +65,7 @@ public class KafkaService {
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(kafkaProps)) {
             consumer.subscribe(Collections.singletonList(topic));
             int received = 0;
+            // 这里多读的是否有影响？ offset是如何设置的？
             while (received < count) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
                 for (ConsumerRecord<String, String> record : records) {

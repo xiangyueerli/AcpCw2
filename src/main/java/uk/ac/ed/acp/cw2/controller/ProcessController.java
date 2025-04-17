@@ -69,7 +69,7 @@ public class ProcessController {
 
             return ResponseEntity.ok("Successfully processed " + messages.size() + " messages");
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace();    // TODO 如何优化exception
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
     }

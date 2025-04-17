@@ -85,7 +85,7 @@ public class RabbitMqController {
             System.out.println("start consuming events - to stop press CTRL+C");
             // Consume with Auto-ACK
             channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});
-            Thread.sleep(consumeTimeMsec);
+            Thread.sleep(consumeTimeMsec);   // TODO 不加休眠会怎么样 猜测休眠时间一直在获取消息
 
             System.out.printf("done consuming events. %d record(s) received\n", result.size());
         } catch (Exception e) {
