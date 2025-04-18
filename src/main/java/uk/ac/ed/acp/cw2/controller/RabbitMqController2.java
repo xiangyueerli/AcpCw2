@@ -1,7 +1,6 @@
 package uk.ac.ed.acp.cw2.controller;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
@@ -11,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
-import uk.ac.ed.acp.cw2.service.RabbitMqService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +38,7 @@ public class RabbitMqController2 {
         factory.setPort(environment.getRabbitMqPort());
     }
 
-    // 发送第四大题的messages
+    // Send the messages for TransformMessages  Designed for data/TransformMessageData.json
     @PutMapping("send/{queueName}")
     public ResponseEntity<String> sendConstantMsg(@PathVariable String queueName) {
         logger.info("Writing constant messages in queue {}", queueName);
@@ -53,7 +51,7 @@ public class RabbitMqController2 {
             ObjectMapper mapper = new ObjectMapper(); // 更可靠的 JSON 构造方式
 
             // 从资源文件中 读取Json消息
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("data/MessageData.json");
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("data/TransformMessageData.json");
 
             if (inputStream == null) {
                 logger.info("Input stream not found.");

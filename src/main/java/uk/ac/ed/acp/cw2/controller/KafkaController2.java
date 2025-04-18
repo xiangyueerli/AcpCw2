@@ -1,6 +1,7 @@
 package uk.ac.ed.acp.cw2.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
 import uk.ac.ed.acp.cw2.service.KafkaService;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -81,23 +84,23 @@ public class KafkaController2 {
         Properties kafkaProps = getKafkaProperties(environment);
 
         try (var producer = new KafkaProducer<String, String>(kafkaProps)) {
-            ObjectMapper mapper = new ObjectMapper(); // 更可靠的 JSON 构造方式
+            ObjectMapper mapper = new ObjectMapper();
             for (int i = 0; i < messageCount; i++) {
 
-                // 1. 构建要发送的消息内容（Map → JSON）
+                // 1. Build the message content to be sent (Map → JSON)
                 Map<String, Object> messageMap = new HashMap<>();
-                messageMap.put("uid", "s2653520");  // TODO: 可以从配置读取
+                messageMap.put("uid", "s2653520");
                 messageMap.put("counter", i);
 
                 String messageJson = mapper.writeValueAsString(messageMap);
 
-                // 2. 创建 ProducerRecord
-                //    - key 可以是 null 或自定义字符串
+                // 2. Create ProducerRecord
+                // - key can be null or custom string
                 String key = "k" + i;
                 ProducerRecord<String, String> record =
                         new ProducerRecord<>(writeTopic, key, messageJson);
 
-                // 3. 使用回调，及时了解发送是否成功
+                // 3. Use callbacks to promptly understand whether the sending is successful
                 producer.send(record, (recordMetadata, ex) -> {
                     if (ex != null)
                         logger.error("Error producing to Kafka", ex);
@@ -135,41 +138,42 @@ public class KafkaController2 {
         }
     }
 
-    // 发送第三大题的request
-    @PutMapping("send/{writeTopic}/{messageCount}")
-    public ResponseEntity<String> sendStudentId2(@PathVariable String writeTopic, @PathVariable int messageCount) {
-        logger.info(String.format("Writing %d messages in topic %s", messageCount, writeTopic));
+    // Send the messages for the ProcessMessages. Data from ProcessMessagesData.json
+    @PutMapping("send/{writeTopic}")
+    public ResponseEntity<String> sendStudentId2(@PathVariable String writeTopic) {
+        logger.info(String.format("Writing messages in topic %s", writeTopic));
         Properties kafkaProps = getKafkaProperties(environment);
 
         try (var producer = new KafkaProducer<String, String>(kafkaProps)) {
             ObjectMapper mapper = new ObjectMapper(); // 更可靠的 JSON 构造方式
-            for (int i = 0; i < messageCount; i++) {
 
-                // 1. 构建要发送的消息内容（Map → JSON）]
-                Map<String, Object> messageMap = new HashMap<>();
-                if (i % 2 == 0) {
-                    messageMap.put("uid", "s2653520");  // TODO: 可以从配置读取
-                    messageMap.put("key", "2234");
-                    messageMap.put("comment", "hahaha");
-                    messageMap.put("value", 1.3);
-                }
-                else {
-                    messageMap.put("uid", "s2653520");  // TODO: 可以从配置读取
-                    messageMap.put("key", "23455");
-                    messageMap.put("comment", "heiheihei");
-                    messageMap.put("value", 9.99);
-                }
+            // 从资源文件中 读取Json消息
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("data/ProcessMessagesData.json");
 
+            if (inputStream == null) {
+                logger.info("Input stream not found.");
+                return ResponseEntity.notFound().build();
+            }
 
-                String messageJson = mapper.writeValueAsString(messageMap);
+            List<Map<String, Object>> data = mapper.readValue(
+                    inputStream,
+                    new TypeReference<>() {
+                    }
+            );
+            logger.info("data: {}", data.toString());
+            int data_len = data.size();
 
-                // 2. 创建 ProducerRecord
-                //    - key 可以是 null 或自定义字符串
+            for (int i = 0; i < data_len; i++) {
+
+                String messageJson = mapper.writeValueAsString(data.get(i));
+
+                // 2. Create ProducerRecord
+                // - key can be null or custom string
                 String key = "k" + i;
                 ProducerRecord<String, String> record =
                         new ProducerRecord<>(writeTopic, key, messageJson);
 
-                // 3. 使用回调，及时了解发送是否成功
+                // 3. Use callbacks to see if the sending is successful
                 producer.send(record, (recordMetadata, ex) -> {
                     if (ex != null)
                         logger.error("Error producing to Kafka", ex);
@@ -183,16 +187,16 @@ public class KafkaController2 {
                     }
                 }).get(1000, TimeUnit.MILLISECONDS);
             }
-            // 发送完毕
-            logger.info("{} record(s) sent to Kafka topic '{}'", messageCount, writeTopic);
-            // 返回 200 OK
-            return ResponseEntity.ok("Successfully produced " + messageCount + " messages to topic " + writeTopic);
+            logger.info("{} record(s) sent to Kafka topic '{}'", data_len, writeTopic);
+            return ResponseEntity.ok("Successfully produced " + data_len + " messages to topic " + writeTopic);
 
         } catch (ExecutionException | TimeoutException | InterruptedException | JsonProcessingException e) {
-            // 捕获各种异常并返回 500
+            // Catch various exceptions and return 500；
             logger.error("Error producing to Kafka topic '{}': {}", writeTopic, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to send messages: " + e.getMessage());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -213,8 +217,8 @@ public class KafkaController2 {
                         record.key(), record.value());
                 System.out.println(record.value());
 
-                // 题目要求：每条消息在返回的 List 中占一个 String 项
-                // 可以只放 record.value() 或者把 key,value 合成一个字符串都行
+                // Question requirements: Each message occupies a String item in the returned List
+                // You can just put record.value() or synthesize key and value into a string
                 result.add(record.value());
             }
             return ResponseEntity.ok(result);
