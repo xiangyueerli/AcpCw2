@@ -1,9 +1,9 @@
 ### (3) PUT rabbitMq/{queueName}/{messageCount}
-PUT http://127.0.0.1:8080/rabbitMq/cyy/1000
+PUT http://127.0.0.1:8080/rabbitMq/cyy1/1000
 ###
 
 ### (3) GET rabbitMq/{queueName}/{timeoutInMsec}
-GET http://127.0.0.1:8080/rabbitMq/cyy/10
+GET http://127.0.0.1:8080/rabbitMq/cyy1/100
 ###
 
 ### (3) PUT kafka/{writeTopic}/{messageCount}
@@ -11,7 +11,7 @@ PUT http://127.0.0.1:8080/kafka/test_topic2/100
 ###
 
 ### (3) GET kafka/{readTopic}/{timeoutInMsec}
-GET http://127.0.0.1:8080/kafka/bad_q/5000
+GET http://127.0.0.1:8080/kafka/test_topic2/5000
 ###
 
 

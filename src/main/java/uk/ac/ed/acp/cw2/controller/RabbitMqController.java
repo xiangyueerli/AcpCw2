@@ -2,7 +2,6 @@ package uk.ac.ed.acp.cw2.controller;
 
 
 import com.rabbitmq.client.DeliverCallback;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -11,13 +10,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * RabbitMqController is a REST controller that provides endpoints for sending and receiving stock symbols
  * through RabbitMQ. This class interacts with a RabbitMQ environment which is configured dynamically during runtime.

@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
+import uk.ac.ed.acp.cw2.service.KafkaService;
 
 import java.time.Duration;
 import java.util.*;
@@ -115,11 +116,22 @@ public class KafkaController2 {
             // 返回 200 OK
             return ResponseEntity.ok("Successfully produced " + messageCount + " messages to topic " + writeTopic);
 
-        } catch (ExecutionException | TimeoutException | InterruptedException | JsonProcessingException e) {
-            // 捕获各种异常并返回 500
-            logger.error("Error producing to Kafka topic '{}': {}", writeTopic, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to send messages: " + e.getMessage());
+        } catch (TimeoutException e) {
+            logger.error("Kafka send timeout: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body("Kafka send timeout.");
+        } catch (ExecutionException e) {
+            logger.error("Kafka execution error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("Kafka execution error.");
+        } catch (InterruptedException e) {
+            logger.warn("Kafka send interrupted: {}", e.getMessage(), e);
+            Thread.currentThread().interrupt(); // 恢复中断状态
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Kafka send interrupted.");
+        } catch (JsonProcessingException e) {
+            logger.error("JSON processing error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to serialize message.");
+        } catch (Exception e) {
+            logger.error("Unexpected Kafka error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
     }
 
@@ -137,7 +149,7 @@ public class KafkaController2 {
                 Map<String, Object> messageMap = new HashMap<>();
                 if (i % 2 == 0) {
                     messageMap.put("uid", "s2653520");  // TODO: 可以从配置读取
-                    messageMap.put("key", "234");
+                    messageMap.put("key", "2234");
                     messageMap.put("comment", "hahaha");
                     messageMap.put("value", 1.3);
                 }
@@ -206,11 +218,21 @@ public class KafkaController2 {
                 result.add(record.value());
             }
             return ResponseEntity.ok(result);
+        } catch (org.apache.kafka.common.errors.TimeoutException e) {
+            logger.error("Kafka poll timeout: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(Collections.emptyList());
+
+        } catch (org.apache.kafka.common.errors.WakeupException e) {
+            logger.error("Kafka consumer interrupted: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Collections.emptyList());
+
+        } catch (org.apache.kafka.common.KafkaException e) {
+            logger.error("Kafka error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Collections.emptyList());
+
         } catch (Exception e) {
-            // 避免直接抛出异常导致 500，手动捕获并返回错误信息
-            logger.error("Error reading from Kafka topic '{}': {}", readTopic, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.emptyList());
+            logger.error("Unexpected Kafka read error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
         }
     }
 }

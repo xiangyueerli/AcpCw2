@@ -1,6 +1,7 @@
 package uk.ac.ed.acp.cw2.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
@@ -12,9 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
 import uk.ac.ed.acp.cw2.service.RabbitMqService;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 /**
  * RabbitMqController is a REST controller that provides endpoints for sending and receiving stock symbols
@@ -27,13 +30,10 @@ public class RabbitMqController2 {
     private static final Logger logger = LoggerFactory.getLogger(RabbitMqController2.class);
     private final RuntimeEnvironment environment;
 
-    private RabbitMqService rabbitMqService;
-
     private ConnectionFactory factory = null;
 
-    public RabbitMqController2(RuntimeEnvironment environment, RabbitMqService rabbitMqService) {
+    public RabbitMqController2(RuntimeEnvironment environment) {
         this.environment = environment;
-        this.rabbitMqService = rabbitMqService;
 
         factory = new ConnectionFactory();
         factory.setHost(environment.getRabbitMqHost());
@@ -53,7 +53,7 @@ public class RabbitMqController2 {
             ObjectMapper mapper = new ObjectMapper(); // 更可靠的 JSON 构造方式
 
             // 从资源文件中 读取Json消息
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("data/messageData.json");
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("data/MessageData.json");
 
             if (inputStream == null) {
                 logger.info("Input stream not found.");
@@ -84,19 +84,18 @@ public class RabbitMqController2 {
     }
 
     @PutMapping("/{queueName}/{messageCount}")
-    public ResponseEntity<String> sendStudentId(@PathVariable String queueName, @PathVariable int messageCount) {
+    public ResponseEntity<?> sendStudentId(@PathVariable String queueName, @PathVariable int messageCount) {
         logger.info("Writing {} id-messages in queue {}", messageCount, queueName);
 
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
 
             channel.queueDeclare(queueName, false, false, false, null);
-
-            ObjectMapper mapper = new ObjectMapper(); // 更可靠的 JSON 构造方式
+            ObjectMapper mapper = new ObjectMapper();
 
             for (int i = 0; i < messageCount; i++) {
                 Map<String, Object> messageMap = new HashMap<>();
-                messageMap.put("uid", "s2653520");  // TODO: 可以从配置读取
+                messageMap.put("uid", "s2653520");
                 messageMap.put("counter", i);
 
                 String messageJson = mapper.writeValueAsString(messageMap);
@@ -107,10 +106,21 @@ public class RabbitMqController2 {
 
             logger.info("{} message(s) sent to RabbitMQ queue '{}'", messageCount, queueName);
             return ResponseEntity.ok("Sent " + messageCount + " messages to " + queueName);
+            // 503
+        } catch (IOException e) {
+            logger.error("RabbitMQ connection IO error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body("Could not connect to RabbitMQ (I/O issue).");
+            // 408
+        } catch (TimeoutException e) {
+            logger.error("RabbitMQ connection timed out: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                    .body("RabbitMQ connection timed out.");
+            // 500
         } catch (Exception e) {
-            logger.error("Error sending messages to RabbitMQ: {}", e.getMessage(), e);
+            logger.error("Unexpected error when sending to RabbitMQ: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to send messages: " + e.getMessage());
+                    .body("Unexpected error: " + e.getMessage());
         }
     }
 
@@ -127,7 +137,6 @@ public class RabbitMqController2 {
 
             while (System.currentTimeMillis() - startTime < timeoutInMsec) {
                 GetResponse response = channel.basicGet(queueName, true);  // true = auto-ack
-
                 if (response != null) {
                     String message = new String(response.getBody(), StandardCharsets.UTF_8);
                     result.add(message);
@@ -135,7 +144,7 @@ public class RabbitMqController2 {
                 } else {
                     // 这个空转的含义是什么？ -- 如果没收到 就等10millis 再重新试着Get  否则会一直反复调用Get
                     // 没消息时短暂休眠避免空转
-                    Thread.sleep(10);
+                    Thread.sleep(10);  // 防止busy waiting
                 }
             }
 
@@ -148,10 +157,19 @@ public class RabbitMqController2 {
             }
 
             return ResponseEntity.ok(result);
+        } catch (IOException e) {
+            logger.error("RabbitMQ I/O error while reading queue '{}': {}", queueName, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Collections.emptyList());
+        } catch (TimeoutException e) {
+            logger.error("RabbitMQ connection timeout: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(Collections.emptyList());
+        } catch (InterruptedException e) {
+            logger.warn("Interrupted while sleeping between polls: {}", e.getMessage(), e);
+            Thread.currentThread().interrupt();  // 恢复中断状态
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
         } catch (Exception e) {
-            logger.error("Failed to read from queue '{}': {}", queueName, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.emptyList());
+            logger.error("Unexpected error when reading from RabbitMQ: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
         }
     }
 }

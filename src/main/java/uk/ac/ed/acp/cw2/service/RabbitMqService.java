@@ -1,5 +1,6 @@
 package uk.ac.ed.acp.cw2.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -7,14 +8,13 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 @Service
 public class RabbitMqService {
@@ -42,8 +42,10 @@ public class RabbitMqService {
             String json = mapper.writeValueAsString(message);
             channel.basicPublish("", queueName, null, json.getBytes(StandardCharsets.UTF_8));
             logger.info(String.format("RabbitMQ send msg to queue name: %s, content: %s", queueName, json));
+        } catch (IOException | TimeoutException e) {
+            logger.error("RabbitMQ connection error when sending to '{}': {}", queueName, e.getMessage(), e);
         } catch (Exception e) {
-            throw new RuntimeException("RabbitMQ message send failed", e);  // TODO Exception
+            logger.error("Unexpected error sending to RabbitMQ '{}': {}", queueName, e.getMessage(), e);
         }
     }
 
@@ -65,13 +67,13 @@ public class RabbitMqService {
                     break;
                 } else {
                     // 没消息时短暂休眠避免空转
-                    Thread.sleep(50);
+                    Thread.sleep(50);    // Busy waiting
                 }
             }
             return message;
         } catch (Exception e) {
             logger.error("Failed to read from queue '{}': {}", queueName, e.getMessage(), e);
-            throw new RuntimeException("RabbitMQ message read failed", e);   // TODO Exception
+            return null;
         }
     }
 
@@ -88,7 +90,7 @@ public class RabbitMqService {
 
             logger.info("One record sent. Content is" + jsonMessage);
         } catch (Exception e) {
-            throw new RuntimeException(e);   // TODO Exception
+            logger.error("Failed to write message in queue '{}': {}", queueName, e.getMessage(), e);
         }
     }
 }

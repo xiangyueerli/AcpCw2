@@ -1,5 +1,8 @@
 package uk.ac.ed.acp.cw2.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.RuntimeEnvironment;
 
@@ -16,6 +19,7 @@ public class KafkaService {
 
 
     private final RuntimeEnvironment environment;
+    private final static Logger logger = LoggerFactory.getLogger(KafkaService.class);
 
     public KafkaService(RuntimeEnvironment environment) {
         this.environment = environment;
@@ -37,10 +41,9 @@ public class KafkaService {
         kafkaProps.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         kafkaProps.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         kafkaProps.setProperty("enable.auto.commit", "true");
-        kafkaProps.put("acks", "all");
 
-        kafkaProps.put("group.id", UUID.randomUUID().toString());
-        kafkaProps.setProperty("auto.offset.reset", "earliest");
+        kafkaProps.put("group.id", UUID.randomUUID().toString());  // 使用新的 group.id 强制从头读
+        kafkaProps.setProperty("auto.offset.reset", "earliest");   // 从头开始读取
         kafkaProps.setProperty("enable.auto.commit", "true");
 
         if (environment.getKafkaSecurityProtocol() != null) {
@@ -56,25 +59,36 @@ public class KafkaService {
         return kafkaProps;
     }
 
-    // TODO 是否需要调整offset？
     public List<Map<String, Object>> readKafkaMessages(String topic, int count) {
         List<Map<String, Object>> result = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
-
         Properties kafkaProps = getKafkaProperties(environment);
+
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(kafkaProps)) {
             consumer.subscribe(Collections.singletonList(topic));
             int received = 0;
-            // 这里多读的是否有影响？ offset是如何设置的？
+
+            // 这里多读的是否有影响？ 无影响 读够就可以了
             while (received < count) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
+
                 for (ConsumerRecord<String, String> record : records) {
-                    result.add(mapper.readValue(record.value(), Map.class));
-                    if (++received >= count) break;
+                    try{
+                        Map<String, Object> json = mapper.readValue(record.value(), Map.class);
+                        result.add(json);
+                        if (++received >= count) break;
+                    } catch (JsonProcessingException ex) {
+                        logger.warn("Skipping malformed JSON: {}", record.value(), ex);
+                        // 忽略错误数据，继续处理其他消息
+                    }
                 }
             }
+        } catch (org.apache.kafka.common.errors.TimeoutException e) {
+            logger.error("Kafka poll timeout: {}", e.getMessage(), e);
+        } catch (org.apache.kafka.common.KafkaException e) {
+            logger.error("Kafka error while consuming topic '{}': {}", topic, e.getMessage(), e);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to read Kafka messages", e);
+            logger.error("Unexpected error while reading Kafka messages: {}", e.getMessage(), e);
         }
         return result;
     }

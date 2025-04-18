@@ -34,7 +34,7 @@ public class CacheService {
             return result;
         } catch (Exception e) {
             log.error(e.getMessage());
-            throw e;
+            return null;
         }
     }
 
@@ -44,7 +44,6 @@ public class CacheService {
             jedis.set(cacheKey, cacheValue);
         } catch (Exception e) {
             log.error(e.getMessage());
-            throw e;
         }
     }
 
@@ -56,7 +55,6 @@ public class CacheService {
             log.info("Key {} removed successfully", cacheKey);
         } catch (Exception e) {
             log.error("Error removing key from Redis: {}", e.getMessage(), e);
-            throw e;
         }
     }
 

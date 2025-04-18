@@ -28,7 +28,7 @@ public class TransformController {
 
     //
     @PostMapping("/transformMessages")
-    public ResponseEntity<String> transformMessages(@RequestBody TransformMessagesRequest transformMessagesRequest) throws JsonProcessingException, InterruptedException {
+    public ResponseEntity<String> transformMessages(@RequestBody TransformMessagesRequest transformMessagesRequest) {
         // {key : "{key:__, version:__, value:__}"}
 
         // 从请求体中获取参数
@@ -55,72 +55,56 @@ public class TransformController {
                 // 视需求决定 break 或者继续等待
                 msgString = rabbitMqService.readJsonMessage(readQueue);
                 logger.warn("No more messages in queue {}", readQueue);
-                Thread.sleep(50);
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    logger.warn("Thread interrupted while waiting for message.");
+                }
             }
 
-            // 2. 解析 JSON，先尝试当 normal message
-            // 由于题目保证消息格式正确，要区分 tombstone 的方法
-            NormalMessage msg = objectMapper.readValue(msgString, NormalMessage.class);
-            boolean isTombstone = isTombstone(msg);
+            try {
 
-            if(isTombstone) {
-                //  3. tombstone：从消息中至少要有 key
-                //    这里假设你先解析到 msg.key
-                //    你也可以再写个 TombstoneMessage 类更精确
-                String key = msg.getKey();
-                if (key == null) {
-                    key = "unknown"; // 或 throw new ...
-                } // TODO
+                // 2. 解析 JSON，先尝试当 normal message
+                // 由于题目保证消息格式正确，要区分 tombstone 的方法
+                NormalMessage msg = objectMapper.readValue(msgString, NormalMessage.class);
+                boolean isTombstone = isTombstone(msg);
 
-                cacheService.removeKey(msg.getKey());
+                if(isTombstone) {
+                    //  3. tombstone：从消息中至少要有 key
+                    //    这里假设你先解析到 msg.key
+                    //    你也可以再写个 TombstoneMessage 类更精确
+                    String key = msg.getKey();
 
-                totalMessagesProcessed++;
+                    cacheService.removeKey(key);
 
-                // 构造并写入 summary 消息
-                TotalMessage totalMessage = new TotalMessage(
-                        totalMessagesWritten,
-                        totalMessagesProcessed,
-                        totalRedisUpdates,
-                        totalValueWritten,
-                        totalAdded
-                );
-                String totalMessageString =  objectMapper.writeValueAsString(totalMessage);
-                rabbitMqService.writeJsonMessage(writeQueue, totalMessageString);
-
-//                totalMessagesWritten++; // 写了 1 条 summary  不需要 special永远不会录入totalMessagesWritten
-
-            }
-            else {
-                // normal message
-                // 判断 redis
-                String key = msg.getKey();
-                Integer version = msg.getVersion(); // 1..n
-                Float value = msg.getValue();
-
-                // 拉取当前 redis 中的 record
-                String cacheValueStr = cacheService.retrieveFromCache(key);
-
-                if (cacheValueStr == null) {
-                    cacheService.storeInCache(key, msgString);
-
-                    totalRedisUpdates++;
-
-                    // send to rabbitmq
-                    value = value + 10.5f;
-                    msg.setValue(value);
-                    String msgStringNew = objectMapper.writeValueAsString(msg);
-                    logger.info("msg: {}, msgStringNew: {}.", msg, msgStringNew);
-                    rabbitMqService.writeJsonMessage(writeQueue, msgStringNew);
-
-                    totalAdded += 10.5f;
-                    totalValueWritten += value;
-
-                    totalMessagesWritten++;
                     totalMessagesProcessed++;
+
+                    // 构造并写入 summary 消息
+                    TotalMessage totalMessage = new TotalMessage(
+                            totalMessagesWritten,
+                            totalMessagesProcessed,
+                            totalRedisUpdates,
+                            totalValueWritten,
+                            totalAdded
+                    );
+                    String totalMessageString =  objectMapper.writeValueAsString(totalMessage);
+                    rabbitMqService.writeJsonMessage(writeQueue, totalMessageString);
+
+    //                totalMessagesWritten++; // 写了 1 条 summary  不需要 special永远不会录入totalMessagesWritten
+
                 }
                 else {
-                    NormalMessage cachedMsg = objectMapper.readValue(cacheValueStr, NormalMessage.class);
-                    if (cachedMsg.getVersion() < version) {
+                    // normal message
+                    // 判断 redis
+                    String key = msg.getKey();
+                    Integer version = msg.getVersion(); // 1..n
+                    Float value = msg.getValue();
+
+                    // 拉取当前 redis 中的 record
+                    String cacheValueStr = cacheService.retrieveFromCache(key);
+
+                    if (cacheValueStr == null) {
                         cacheService.storeInCache(key, msgString);
 
                         totalRedisUpdates++;
@@ -129,6 +113,7 @@ public class TransformController {
                         value = value + 10.5f;
                         msg.setValue(value);
                         String msgStringNew = objectMapper.writeValueAsString(msg);
+                        logger.info("msg: {}, msgStringNew: {}.", msg, msgStringNew);
                         rabbitMqService.writeJsonMessage(writeQueue, msgStringNew);
 
                         totalAdded += 10.5f;
@@ -136,17 +121,40 @@ public class TransformController {
 
                         totalMessagesWritten++;
                         totalMessagesProcessed++;
-                    }
-                    // TODO
-                    else {
-                        // redis 中 version == 新消息 => 不更新 redis
-                        // 原样写入
-                        rabbitMqService.writeJsonMessage(writeQueue, msgString);   //
-                        totalValueWritten += value; // 记录这次写出的 value
-                        totalMessagesWritten++;
-                        totalMessagesProcessed++;
+                    } else {
+                        NormalMessage cachedMsg = objectMapper.readValue(cacheValueStr, NormalMessage.class);
+                        if (cachedMsg.getVersion() < version) {
+                            cacheService.storeInCache(key, msgString);
+
+                            totalRedisUpdates++;
+
+                            // send to rabbitmq
+                            value = value + 10.5f;
+                            msg.setValue(value);
+                            String msgStringNew = objectMapper.writeValueAsString(msg);
+                            rabbitMqService.writeJsonMessage(writeQueue, msgStringNew);
+
+                            totalAdded += 10.5f;
+                            totalValueWritten += value;
+
+                            totalMessagesWritten++;
+                            totalMessagesProcessed++;
+                        }
+                        // TODO
+                        else {
+                            // redis 中 version == 新消息 => 不更新 redis
+                            // 原样写入
+                            rabbitMqService.writeJsonMessage(writeQueue, msgString);   //
+                            totalValueWritten += value; // 记录这次写出的 value
+                            totalMessagesWritten++;
+                            totalMessagesProcessed++;
+                        }
                     }
                 }
+            } catch (JsonProcessingException e) {
+                logger.warn("Invalid message format: {}", msgString, e);
+            } catch (Exception e) {
+                logger.error("Unexpected error while processing message: {}", msgString, e);
             }
         }
         // 最终返回处理结果

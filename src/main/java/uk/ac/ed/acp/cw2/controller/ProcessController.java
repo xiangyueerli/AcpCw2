@@ -2,6 +2,7 @@ package uk.ac.ed.acp.cw2.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.model.ProcessMessagesRequest;
@@ -37,7 +38,6 @@ public class ProcessController {
 
             double runningTotal = 0.0;
             double badTotal = 0.0;
-            String uid =  null;
 
             for (Map<String, Object> msg : messages) {
                 logger.info("Processing message: {}", msg);
@@ -50,33 +50,38 @@ public class ProcessController {
                     msg.put("runningTotalValue", runningTotal);
                     logger.info("runningTotalValue: {}", runningTotal);
                     String uuid = acpStorageService.storeJsonToAcp(msg);
-                    msg.put("uuid", uuid);
-                    logger.info("uuid: {}", uuid);
+                    if(uuid == null) {
+                        logger.warn("Failed to store message to ACP. Skipping message.");
+                    }
+                    else {
+                        msg.put("uuid", uuid);
+                        logger.info("uuid: {}", uuid);
+                    }
                     rabbitMqService.sendMessage(request.getWriteQueueGood(), msg);
                 } else if (key.length() == 5) {
                     badTotal += value;
                     rabbitMqService.sendMessage(request.getWriteQueueBad(), msg);
                 }
-                uid = (String) msg.get("uid");
             }
 
             logger.info("uuid: {}", runningTotal);
             // 构造并发送 TOTAL 消息（不需要 uuid 和存储）
-            Map<String, Object> totalGood = buildTotalMessage(uid, runningTotal);
-            Map<String, Object> totalBad = buildTotalMessage(uid, badTotal);
+            Map<String, Object> totalGood = buildTotalMessage(runningTotal);
+            Map<String, Object> totalBad = buildTotalMessage(badTotal);
             rabbitMqService.sendMessage(request.getWriteQueueGood(), totalGood);
             rabbitMqService.sendMessage(request.getWriteQueueBad(), totalBad);
 
             return ResponseEntity.ok("Successfully processed " + messages.size() + " messages");
         } catch (Exception e) {
-            e.printStackTrace();    // TODO 如何优化exception
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+            logger.error("Unexpected error during processMessages: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body("Service failed to process messages.");
         }
     }
 
-    private Map<String, Object> buildTotalMessage(String uid, double value) {
+    private Map<String, Object> buildTotalMessage(double value) {
         Map<String, Object> msg = new HashMap<>();
-        msg.put("uid", uid);
+        msg.put("uid", "s2653520");
         msg.put("key", "TOTAL");
         msg.put("comment", "");
         msg.put("value", value);
