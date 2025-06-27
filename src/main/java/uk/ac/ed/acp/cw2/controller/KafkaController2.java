@@ -201,27 +201,46 @@ public class KafkaController2 {
     }
 
     @GetMapping("/{readTopic}/{timeoutInMsec}")
-    public ResponseEntity<List<String>> receiveStudentId(@PathVariable String readTopic, @PathVariable int timeoutInMsec) {
+    public ResponseEntity<List<String>> receiveStudentId(@PathVariable String readTopic,
+                                                         @PathVariable int timeoutInMsec) {
         logger.info("Reading messages from topic '{}' with a poll timeout of {} ms",
                 readTopic, timeoutInMsec);
         Properties kafkaProps = getKafkaProperties(environment);
 
         List<String> result = new ArrayList<>();
 
-        try (var consumer = new KafkaConsumer<String, String>(kafkaProps)) {
-            consumer.subscribe(Collections.singletonList(readTopic));
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(timeoutInMsec));
-            for (ConsumerRecord<String, String> record : records) {
-                logger.info("Topic={}, Partition={}, Offset={}, Timestamp={}, Key={}, Value={}",
-                        record.topic(), record.partition(), record.offset(), record.timestamp(),
-                        record.key(), record.value());
-                System.out.println(record.value());
+        // 计算时间窗口
+        long startTime = System.currentTimeMillis();
+        long deadline = startTime + timeoutInMsec;
+        long absoluteDeadline = deadline + 200; // 加 200ms 的软限制
 
-                // Question requirements: Each message occupies a String item in the returned List
-                // You can just put record.value() or synthesize key and value into a string
-                result.add(record.value());
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(kafkaProps)) {
+            consumer.subscribe(Collections.singletonList(readTopic));
+
+            while (System.currentTimeMillis() < deadline) {
+                long remainingTime = deadline - System.currentTimeMillis();
+                if (remainingTime <= 0) break;
+
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(Math.min(remainingTime, 150)));
+                for (ConsumerRecord<String, String> record : records) {
+                    logger.info("Topic={}, Partition={}, Offset={}, Timestamp={}, Key={}, Value={}",
+                            record.topic(), record.partition(), record.offset(), record.timestamp(),
+                            record.key(), record.value());
+                    result.add(record.value());
+                }
             }
+
+            long totalElapsed = System.currentTimeMillis() - startTime;
+            logger.info("Kafka polling finished in {} ms. Total records read: {}", totalElapsed, result.size());
+
+            // 如果超时超出 +200ms，按题目要求算失败（可选）
+            if (System.currentTimeMillis() > absoluteDeadline) {
+                logger.warn("Exceeded maximum allowed processing time ({}ms)", timeoutInMsec + 200);
+                return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(Collections.emptyList());
+            }
+
             return ResponseEntity.ok(result);
+
         } catch (org.apache.kafka.common.errors.TimeoutException e) {
             logger.error("Kafka poll timeout: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(Collections.emptyList());
@@ -239,4 +258,5 @@ public class KafkaController2 {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
         }
     }
+
 }
